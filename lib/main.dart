@@ -1,102 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main(List<String> args) {
   runApp(ChangeNotifierProvider(
     // nhà phân phối
-    create: (context) => CounterProvider(), // nhà cùng cấp
+    create: (context) => MySettings(), // nhà cùng cấp
     child: const MaterialApp(
-      home: HomeScreen(),
+      home: MyApp(),
     ),
   ));
 }
 
-class CounterProvider extends ChangeNotifier {
-  int _counter = 100;
-  int get counter => _counter;
-  void add() {
-    // có sự thay đổi data thì phải dùng hàm notifyListeners()
-    _counter++;
+class MySettings extends ChangeNotifier {
+  // nhà cung cấp
+  String text = "Heloo";
+  Color color = Colors.red;
+
+  void changeText() {
+    if (text == "Heloo") {
+      text = "World";
+    } else {
+      text = "Heloo";
+    }
+    notifyListeners();
+  }
+
+  void changeColor() {
+    if (color == Colors.red) {
+      color = Colors.cyan;
+    } else {
+      color = Colors.red;
+    }
+    notifyListeners();
+  }
+
+  Set? newColor(Color newColor) {
+    color = newColor;
     notifyListeners();
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+// mySettings biến chứa dữ liệu child là chứa giao diện
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Home Screen"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              context.watch<CounterProvider>()._counter.toString(),
-              style: const TextStyle(fontSize: 50),
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      // app state là trạng thái nhìu màn hình
-                      // push repacement là xoá lun màn hình vừa chạy dùng cho case là login
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SecondScreen(),
-                      ));
-                },
-                child: const Text("Go to second Screen"))
-          ],
+    return Consumer<MySettings>(
+      builder: (context, mySettings, child) => Scaffold(
+        appBar: AppBar(
+          title: const Text("Provider"),
+          backgroundColor: mySettings.color,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          context.read<CounterProvider>().add();
-        },
-      ),
-    );
-  }
-}
-
-class SecondScreen extends StatelessWidget {
-  const SecondScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Second Screen"),
-        backgroundColor: Colors.amberAccent,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              context.watch<CounterProvider>()._counter.toString(),
-              style: const TextStyle(fontSize: 50),
+        drawer: Drawer(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    onPressed: () =>
+                        {mySettings.changeText(), Navigator.pop(context)},
+                    child: const Text("change text")),
+                ElevatedButton(
+                    onPressed: () {
+                      mySettings.changeColor();
+                      Navigator.pop(context);
+                    },
+                    child: const Text("change Color")),
+                ElevatedButton(
+                    onPressed: () {
+                      mySettings.newColor(Colors
+                          .lightBlue); // sẽ ko đổi ui dc về ko có gọi hàm notyfi á để nó báo đến nơi cần cung cấp
+                      Navigator.pop(context);
+                    },
+                    child: const Text("change Color to red")),
+              ],
             ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const HomeScreen(),
-                      ));
-                },
-                child: const Text("Go to Home Screen"))
-          ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          context.read<CounterProvider>().add();
-        },
+        body: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  onPressed: mySettings.changeText,
+                  child: const Text("Change Text")),
+              Text('${mySettings.text} of MySettings')
+            ],
+          ),
+        ),
       ),
     );
   }
